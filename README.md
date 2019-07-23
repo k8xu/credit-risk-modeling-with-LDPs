@@ -1,15 +1,16 @@
 # Credit Risk Modeling with Low Default Portfolios
 
-### Introduction
-
-
 
 ### State-of-the-Art Paper
-
+A systematic search methodology was used to compile relevant papers on recent machine learning methods for imbalanced learning. The paper has been uploaded as a PDF file in this GitHub repository.
 
 
 ### Proposed Models
-
+The four models that have shown good performance in research and will be evaluated on the German credit dataset are...
+1. Example-Dependent Cost-Sensitive Decision Trees
+2. Ordinal Multi-Class Support Vector Machine
+3. Extreme Gradient Boosting
+4. Cluster-Based Undersampling with Boosting
 
 
 ### Notes
