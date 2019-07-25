@@ -172,3 +172,25 @@ for depth in range(2, 20, 10): # What is depth and estimators?
 
             best_precision, best_recall, _ = precision_recall_curve(y_test, predictions[:, 1])
             best_fpr, best_tpr, thresholds = roc_curve(y_test, predictions[:, 1])
+
+print('plotting', dataset)
+# plt.clf()
+plt.plot(best_recall, best_precision, lw=2, color='Blue',
+         label='Precision-Recall Curve')
+plt.plot(best_fpr, best_tpr, lw=2, color='red',
+         label='ROC curve')
+
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.ylim([0.0, 1.05])
+plt.xlim([0.0, 1.0])
+plt.legend(loc="upper right")
+plt.show()
+
+# Evaluate model with metrics
+print("AUC:", auc) # Higher is better
+print("MCC:", matthews_corrcoef(y_test, y_pred)) # Closer to 1 is better
+print("F1 Score:", f1_score(y_test, y_pred)) # Closer to 1 is better
+print("Accuracy:", accuracy_score(y_test, y_pred)) # Closer to 1 is better
+
+# plt.plot(fpr_c[1], tpr_c[1], lw=2, color='red',label='Roc curve: Clustered sampling') # Error: says fpr_c doesn't exist
