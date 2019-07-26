@@ -33,6 +33,7 @@ print("Checking account: ", df['Checking account'].unique())
 print("Purpose: ", df['Purpose'].unique())
 print("Risk: ", df['Risk'].unique())
 
+
 # One hot encoding function
 def one_hot(df, nan = False):
     original = list(df.columns)
@@ -48,11 +49,24 @@ df = df.merge(pd.get_dummies(df["Saving accounts"], drop_first=False, prefix='Sa
 df = df.merge(pd.get_dummies(df["Checking account"], drop_first=False, prefix='Checking'), left_index=True, right_index=True)
 df = df.merge(pd.get_dummies(df['Purpose'], drop_first=True, prefix='Purpose'), left_index=True, right_index=True)
 
+# Group age into categories
+interval = (18, 25, 40, 65, 100)
+categories = ['University', 'Younger', 'Older', 'Senior']
+df["Age_cat"] = pd.cut(df.Age, interval, labels=categories)
+df = df.merge(pd.get_dummies(df["Age_cat"], drop_first=True, prefix='Age_cat'), left_index=True, right_index=True)
+# print("Age_cat: ", df['Age_cat'].unique())
+
 del df['Sex']
 del df['Housing']
 del df['Saving accounts']
 del df['Checking account']
 del df['Purpose']
+del df['Age']
+del df['Age_cat']
+
+# Scale credit amount by natural log function
+df['Credit amount'] = np.log(df['Credit amount'])
+
 
 # Map outputs to 0 (good) or 1 (bad)
 df = df.merge(pd.get_dummies(df.Risk, prefix='Risk'), left_index=True, right_index=True)
@@ -67,9 +81,10 @@ print("X:", X, '\n')
 
 # Rescale feature values to decimals between 0 and 1
 normalization_object = Normalizer()
-X = normalization_object.fit_transform(X)
+# X_norm = normalization_object.fit_transform(X)
 # X = X_norm
 # print("X_norm:", X_norm)
+
 
 # K-fold cross validation that splits data into train and test set
 skf = StratifiedKFold(n_splits=10, shuffle=True) # default n_splits is 5
