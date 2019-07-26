@@ -243,6 +243,13 @@ for depth in range(2, 20, 10): # What is depth and estimators?
 
 print('plotting', dataset)
 # plt.clf()
+# print("best_precision :", best_precision)
+# print("best_recall :", best_recall)
+print("best_depth :", best_depth)
+print("best_estimators :", best_estimators)
+
+
+# Precision-Recall and ROC curves
 plt.plot(best_recall, best_precision, lw=2, color='Blue',
          label='Precision-Recall Curve')
 plt.plot(best_fpr, best_tpr, lw=2, color='red',
@@ -255,10 +262,12 @@ plt.xlim([0.0, 1.0])
 plt.legend(loc="upper right")
 plt.show()
 
-# Evaluate model with metrics
-print("AUC:", auc) # Higher is better
-print("MCC:", matthews_corrcoef(y_test, y_pred)) # Closer to 1 is better
-print("F1 Score:", f1_score(y_test, y_pred)) # Closer to 1 is better
-print("Accuracy:", accuracy_score(y_test, y_pred)) # Closer to 1 is better
+
+# Evaluate model with other metrics
+print("AUC :", best_auc)                    # Higher is better
+print("MCC :", best_mcc)                    # Closer to 1 is better
+# print("F1 Score :", best_f1)                # Closer to 1 is better
+# print("Accuracy :", best_acc)               # Closer to 1 is better
+# print("Balanced Accuracy :", best_bal_acc)  # Best is 1, worst is 0
 
 # plt.plot(fpr_c[1], tpr_c[1], lw=2, color='red',label='Roc curve: Clustered sampling') # Error: says fpr_c doesn't exist
