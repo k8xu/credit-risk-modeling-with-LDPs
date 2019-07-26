@@ -9,10 +9,12 @@ from sklearn.tree import DecisionTreeClassifier
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 import math
-from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score
+from sklearn.metrics import roc_auc_score, average_precision_score, matthews_corrcoef, f1_score, accuracy_score, balanced_accuracy_score, confusion_matrix
 from sklearn.model_selection import StratifiedKFold
+import seaborn as sns
 
-dataset = 'credit_data.csv' # Used modified version from Kaggle, original from UCI Machine Learning Repository
+
+dataset = 'credit_data.csv'
 print("dataset : ", dataset)
 df = pd.read_csv(dataset)
 
@@ -20,16 +22,16 @@ df = pd.read_csv(dataset)
 df.drop('Unnamed: 0', axis=1, inplace=True)
 df.head()
 
-print("Age: ", credit_data['Age'].unique())
-print("Sex: ", credit_data['Sex'].unique())
-print("Job: ", credit_data['Job'].unique())
-print("Housing: ", credit_data['Housing'].unique())
-print("Saving accounts: ", credit_data['Saving accounts'].unique())
-print("Checking account: ", credit_data['Checking account'].unique())
-# print("Credit amount: ", credit_data['Credit amount'].unique())
-# print("Duration: ", credit_data['Duration'].unique())
-print("Purpose: ", credit_data['Purpose'].unique())
-print("Risk: ", credit_data['Risk'].unique())
+print("Age: ", df['Age'].unique())
+print("Sex: ", df['Sex'].unique())
+print("Job: ", df['Job'].unique())
+print("Housing: ", df['Housing'].unique())
+print("Saving accounts: ", df['Saving accounts'].unique())
+print("Checking account: ", df['Checking account'].unique())
+# print("Credit amount: ", df['Credit amount'].unique())
+# print("Duration: ", df['Duration'].unique())
+print("Purpose: ", df['Purpose'].unique())
+print("Risk: ", df['Risk'].unique())
 
 # One hot encoding function
 def one_hot(df, nan = False):
