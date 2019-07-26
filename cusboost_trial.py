@@ -56,6 +56,7 @@ df["Age_cat"] = pd.cut(df.Age, interval, labels=categories)
 df = df.merge(pd.get_dummies(df["Age_cat"], drop_first=True, prefix='Age_cat'), left_index=True, right_index=True)
 # print("Age_cat: ", df['Age_cat'].unique())
 
+# Delete old columns
 del df['Sex']
 del df['Housing']
 del df['Saving accounts']
@@ -87,17 +88,31 @@ normalization_object = Normalizer()
 
 
 # K-fold cross validation that splits data into train and test set
-skf = StratifiedKFold(n_splits=10, shuffle=True) # default n_splits is 5
+skf = StratifiedKFold(n_splits=5, shuffle=True) # default n_splits is 5
 
+# Record highest AUC and MCC
 top_auc = 0
+top_mcc = 0
+# top_f1 = 0
+# top_acc = 0
+# top_bal_acc = 0
+
 mean_fpr = np.linspace(0, 1, 100) # np.linspace returns 100 evenly spaced numbers over interval [0,1]
-number_of_clusters = 5 # Why did they choose 23?
+number_of_clusters = 23 # Why did they choose 23?
 percentage_to_choose_from_each_cluster = 0.5 # Undersampling ratio of 0.5 for each majority class cluster
+
+# y_test_all = []
+# y_pred_all = []
+
 
 for depth in range(2, 20, 10): # What is depth and estimators?
     for estimators in range(20, 50, 10):
 
         current_param_auc = []
+        current_param_mcc = []
+        # current_param_f1 = []
+        # current_param_acc = []
+        # current_param_bal_acc = []
         current_param_aupr = []
         tprs = []
 
@@ -115,6 +130,7 @@ for depth in range(2, 20, 10): # What is depth and estimators?
             # print('y_train:', y_train)
             # print('y_test:', y_test)
             
+            # Cluster majority class instances
             value, counts = np.unique(y_train, return_counts=True)
             minority_class = value[np.argmin(counts)]
             majority_class = value[np.argmax(counts)]
@@ -133,6 +149,8 @@ for depth in range(2, 20, 10): # What is depth and estimators?
 
             points_under_each_cluster = {i: np.where(kmeans.labels_ == i)[0] for i in range(kmeans.n_clusters)}
 
+            
+            # Choose majority class instances and add to dataset to use
             for key in points_under_each_cluster.keys():
                 points_under_this_cluster = np.array(points_under_each_cluster[key])
                 number_of_points_to_choose_from_this_cluster = math.ceil(
@@ -149,23 +167,37 @@ for depth in range(2, 20, 10): # What is depth and estimators?
             classifier = AdaBoostClassifier(
                 DecisionTreeClassifier(max_depth=depth),
                 n_estimators=estimators,
-                learning_rate=1, algorithm='SAMME.R') # SAMME is a discrete boosting algorithm
-            # classifier = AdaBoostClassifier(
-            #     DecisionTreeClassifier(max_depth=depth),
-            #     n_estimators=estimators,
-            #     learning_rate=1, algorithm='SAMME.R') # Achieved better AUC (+0.15) and MCC (+0.30)!
-
+                learning_rate=1, algorithm='SAMME') # SAMME discrete boosting algorithm, SAMME.R real boosting algorithm (converges faster)
+            
+            
+            # Train classifier
             classifier.fit(X_sampled, y_sampled)
+            # print("Trained classifier :", classifier.fit(X_sampled, y_sampled))
+            
+            # Make predictions on test data
+            predictions = classifier.predict_proba(X_test) # Nx2 array of probabilities in class 0 (good) and class 1 (bad) where N is 1000/(# splits)
+            y_pred = classifier.predict(X_test) # Returns N predicted y and agrees with probabilities
+            # y_test_all.extend(y_test)
+            # y_pred_all.extend(y_pred)
+            
+            # print("y_test :", y_test)
+            # print("predictions :", predictions)
+            # print("y_pred :", y_pred)
+            
 
-            predictions = classifier.predict_proba(X_test)
-            y_pred = classifier.predict(X_test)
-
-            auc = roc_auc_score(y_test, predictions[:, 1])
-
+            # Calculate AUC and MCC of current split with specified depth and estimators
+            auc = roc_auc_score(y_test, predictions[:, 1]) # predictions[:, 1] returns only second column (probability of bad)
+            mcc = matthews_corrcoef(y_test, y_pred)
+            # f1 = f1_score(y_test, y_pred)
+            # acc = accuracy_score(y_test, y_pred)
+            # bal_acc = balanced_accuracy_score(y_test, y_pred)
             aupr = average_precision_score(y_test, predictions[:, 1])
 
             current_param_auc.append(auc)
-
+            current_param_mcc.append(mcc)
+            # current_param_mcc.append(f1)
+            # current_param_mcc.append(acc)
+            # current_param_mcc.append(bal_acc)
             current_param_aupr.append(aupr)
 
             fpr, tpr, thresholds = roc_curve(y_test, predictions[:, 1])
@@ -173,22 +205,41 @@ for depth in range(2, 20, 10): # What is depth and estimators?
             tprs[-1][0] = 0.0
 
         current_mean_auc = np.mean(np.array(current_param_auc))
+        current_mean_mcc = np.mean(np.array(current_param_mcc))
+        # current_mean_f1 = np.mean(np.array(current_param_f1))
+        # current_mean_acc = np.mean(np.array(current_param_acc))
+        # current_mean_bal_acc = np.mean(np.array(current_param_bal_acc))
         current_mean_aupr = np.mean(np.array(current_param_aupr))
 
+        
+        # Compare new AUC with current best
         if top_auc < current_mean_auc:
+        # if top_mcc < current_mean_mcc:
             top_auc = current_mean_auc
+            top_mcc = current_mean_mcc
+            # top_f1 = current_mean_f1
+            # top_acc = current_mean_acc
+            # top_bal_acc = current_mean_bal_acc
 
             best_depth = depth
             best_estimators = estimators
 
             best_auc = top_auc
+            best_mcc = top_mcc
+            # best_f1 = top_f1
+            # best_acc = top_acc
+            # best_bal_acc = top_bal_acc
             best_aupr = current_mean_aupr
-
+            
+            # print("top_auc :", top_auc)
+            # print("best_auc :", best_auc)
+            
             best_tpr = np.mean(tprs, axis=0)
             best_fpr = mean_fpr
 
             best_precision, best_recall, _ = precision_recall_curve(y_test, predictions[:, 1])
             best_fpr, best_tpr, thresholds = roc_curve(y_test, predictions[:, 1])
+
 
 print('plotting', dataset)
 # plt.clf()
