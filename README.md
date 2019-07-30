@@ -45,7 +45,7 @@ CUSBoost is a boosting algorithm that first clusters majority class instances in
 * The original algorithm fit for `pima.txt` from Rayhan et al. (2017) may be good for selecting majority class instances, but its performance needs improvement as shown by metric evaluations. The range of scores for AUC is 0.60-0.70 and for MCC is 0.20-0.30. The bigger problem is that the confusion matrix shows that the model can classify the good credit class more correctly, but there are more bad credit risk examples that are misclassified as good credit than there are correctly classified bad credit examples.
 
 ### Modified CUSBoost
-Original algorithm was fit for `pima.txt` from Rayhan et al. (2017) so modified model adapted to `credit_data.csv`. Learned that metric functions must be computed within each split rather than on `y_test` and `y_pred` afterwards, or else only using values from last split instead of all the data. Similarly, `auc` is the AUC of the final split, so use `best_auc` which takes the highest AUC of all splits.
+The modified model adapts to `credit_data.csv` by extracting values from categorical features and adjusting to the CSV file format. A lesson learned is that metric functions must be computed within each split rather than on `y_test` and `y_pred` afterwards, or else only using values from last split instead of all the data. Similarly, `auc` is the AUC of the final split, so use `best_auc` which takes the highest AUC of all splits.
 
 **Observations**
 
