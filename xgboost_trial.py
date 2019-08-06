@@ -70,3 +70,33 @@ y = np.array(df['Risk_bad'])
 
 # Split train and test datasets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+
+# Test on unseen data
+xgboosted = XGBClassifier(learning_rate=0.2, 
+                          gamma=5, 
+                          n_estimators=1000, # int
+                          max_depth=3, # int
+                          min_child_weight=20, # int
+                          subsample=0.94, 
+                          colsample_bytree=0.95, 
+                          scale_pos_weight=0.94)
+print("XGBoosted :", xgboosted)
+
+xgboosted.fit(X_train, y_train)
+predictions = xgboosted.predict_proba(X_test)
+y_pred = xgboosted.predict(X_test)
+
+# Evaluate with AUC and MCC
+auc = roc_auc_score(y_test, predictions[:, 1])
+mcc = matthews_corrcoef(y_test, y_pred)
+print("AUC :", auc)
+print("MCC :", mcc)
+
+# Other metrics
+acc = accuracy_score(y_test, y_pred)
+print("Accuracy :", acc)
+bal_acc = balanced_accuracy_score(y_test, y_pred)
+print("Balanced accuracy :", bal_acc)
+
+
