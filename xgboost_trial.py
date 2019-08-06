@@ -108,3 +108,63 @@ plt.xlabel('Truth')
 plt.ylabel('Predicted')
 
 
+# Create XGBoost model with Bayesian optimization
+skf = StratifiedKFold(n_splits=5, shuffle=True)
+
+all_auc = []
+all_mcc = []
+all_acc = []
+all_bal_acc = []
+
+def xgb_function(learning_rate, gamma, min_child_weight, subsample, colsample_bytree, scale_pos_weight):
+    """
+    Function with XGBoost parameters that returns AUC on train and test set
+    """
+    xgbclf = XGBClassifier(learning_rate=learning_rate, 
+                           gamma=gamma, 
+                           n_estimators=1000, 
+                           max_depth=3, 
+                           min_child_weight=min_child_weight, 
+                           subsample=subsample, 
+                           colsample_bytree=colsample_bytree, 
+                           scale_pos_weight=scale_pos_weight)
+    
+    
+    for train_index, val_index in skf.split(X_train, y_train):
+        X_train_fun = X_train[train_index]
+        y_train_fun = y_train[train_index]
+        X_val = X_train[val_index]
+        y_val = y_train[val_index]
+
+        xgbclf.fit(X_train_fun, y_train_fun)
+        predictions = xgbclf.predict_proba(X_val)
+        y_pred = xgbclf.predict(X_val)
+    
+        auc = roc_auc_score(y_val, predictions[:, 1])
+        mcc = matthews_corrcoef(y_val, y_pred)
+        acc = accuracy_score(y_val, y_pred)
+        bal_acc = balanced_accuracy_score(y_val, y_pred)
+        
+        all_auc.append(auc)
+        all_mcc.append(mcc)
+        all_acc.append(acc)
+        all_bal_acc.append(bal_acc)
+    
+    
+    mean_auc = np.mean(np.array(all_auc))
+    mean_mcc = np.mean(np.array(all_mcc))
+    mean_acc = np.mean(np.array(all_acc))
+    mean_bal_acc = np.mean(np.array(all_bal_acc))
+
+    return mean_auc
+    
+# Parameter bounds
+pbounds = {'learning_rate': (0.01, 0.2), 
+           'gamma': (1.0, 5.0), 
+           'min_child_weight': (0, 20), 
+           'subsample': (0.8, 1.0), 
+           'colsample_bytree': (0.7, 1.0), 
+           'scale_pos_weight': (0.5, 1.0)}
+optimizer = BayesianOptimization(f=xgb_function, pbounds=pbounds, verbose=2)
+optimizer.maximize(init_points=2, n_iter=3)
+print("Optimizer :", optimizer.max)
