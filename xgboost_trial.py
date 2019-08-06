@@ -100,3 +100,11 @@ bal_acc = balanced_accuracy_score(y_test, y_pred)
 print("Balanced accuracy :", bal_acc)
 
 
+# Create confusion matrix
+matrix = confusion_matrix(y_test, y_pred)
+values = np.unique(y_pred)
+sns.heatmap(matrix, square=True, annot=True, fmt='d', cbar=False, xticklabels=values, yticklabels=values)
+plt.xlabel('Truth')
+plt.ylabel('Predicted')
+
+
