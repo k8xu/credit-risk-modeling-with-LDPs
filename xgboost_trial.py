@@ -60,3 +60,13 @@ df = df.merge(pd.get_dummies(df.Risk, prefix='Risk'), left_index=True, right_ind
 del df['Risk']
 del df['Risk_good']
 # print(df.head())
+
+
+from bayes_opt import BayesianOptimization
+
+# Separate X and y of dataset
+X = np.array(df.drop(['Risk_bad'], axis=1))
+y = np.array(df['Risk_bad'])
+
+# Split train and test datasets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
