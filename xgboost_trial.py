@@ -21,3 +21,42 @@ df = pd.read_csv(dataset)
 
 df.drop('Unnamed: 0', axis=1, inplace=True)
 print(df.head())
+
+
+# One hot encoding function
+def one_hot(df, nan = False):
+    original = list(df.columns)
+    category = [col for col in df.columns if df[col].dtype == 'object']
+    df = pd.get_dummies(df, columns = category, dummy_na = nan, drop_first = True)
+    new_columns = [c for c in df.columns if c not in original]
+    return df, new_columns
+
+# Feature extraction
+df = df.merge(pd.get_dummies(df['Sex'], drop_first=True, prefix='Sex'), left_index=True, right_index=True)
+df = df.merge(pd.get_dummies(df['Housing'], drop_first=False, prefix='Housing'), left_index=True, right_index=True)
+df = df.merge(pd.get_dummies(df["Saving accounts"], drop_first=False, prefix='Saving'), left_index=True, right_index=True)
+df = df.merge(pd.get_dummies(df["Checking account"], drop_first=False, prefix='Checking'), left_index=True, right_index=True)
+df = df.merge(pd.get_dummies(df['Purpose'], drop_first=False, prefix='Purpose'), left_index=True, right_index=True)
+
+# Group age into categories
+interval = (18, 25, 40, 65, 100)
+categories = ['Student', 'Younger', 'Older', 'Senior']
+df["Age_cat"] = pd.cut(df.Age, interval, labels=categories)
+df = df.merge(pd.get_dummies(df["Age_cat"], drop_first=False, prefix='Age_cat'), left_index=True, right_index=True)
+
+del df['Sex']
+del df['Housing']
+del df['Saving accounts']
+del df['Checking account']
+del df['Purpose']
+del df['Age']
+del df['Age_cat']
+
+# Scale credit amount by natural log function
+df['Credit amount'] = np.log(df['Credit amount'])
+
+# Map outputs to 0 (good) or 1 (bad)
+df = df.merge(pd.get_dummies(df.Risk, prefix='Risk'), left_index=True, right_index=True)
+del df['Risk']
+del df['Risk_good']
+# print(df.head())
